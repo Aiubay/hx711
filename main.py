@@ -100,6 +100,7 @@ while True:
             waktu = timeSensor2 - timeSensor1 #Dalam Detik
             print "Waktu : %s" % float(round(waktu, 3))
             kecepatan = int(jarak) / float(round(waktu, 3))
+            print "Kecepatan : %s" % (kecepatan)
             print "Sensor 1 = %s Sensor 2 = %s Kecepatan = %s" % (val_A, val_B, kecepatan)
             sql = "INSERT INTO weight (Date,BeratWim1,BeratWim2,Kecepatan) VALUES (%s,%s,%s,%s)"
             val = (x,val_A,val_B,kecepatan)
