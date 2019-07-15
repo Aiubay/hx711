@@ -105,7 +105,7 @@ while True:
             val = (x,val_A,val_B,kecepatan)
             mycursor.execute(sql,val)
             mydb.Commit()
-            print (mycursor.rowcount, "Data Send to database")
+            #print (mycursor.rowcount, "Data Send to database")
             pass
 
 
@@ -125,6 +125,8 @@ while True:
         hx.power_up()
         time.sleep(0.1)
         print (mycursor.rowcount, "Data Send to database")
+        print ""
+        print ""
     except (KeyboardInterrupt, SystemExit):
         cleanAndExit()
 print(mycursor.rowcount, "record inserted.")
