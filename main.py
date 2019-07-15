@@ -22,7 +22,7 @@ mydb = mysql.connector.connect(
   host="192.168.1.8",
   user="user",
   passwd="testrun",
-  database="wim"
+  database="wim2"
 )
 x = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") #print date without microsecond
 mycursor = mydb.cursor()
@@ -82,26 +82,41 @@ while True:
         # To get weight from both channels (if you have load cells hooked up 
         # to both channel A and B), do something like this
 
+        y = int(50000)  # Asumsi berat minimum truck
+        jarak = int(20)  # Dalam Meter
 
-        # y = int(60000) #Asumsi berat minimum truck
-        # val_A = hx.getweight(5) #Data dari sensor 1
-        # val_B = h2x.getweight(5) #Data dari sensor 2
+        val_A = hx.get_weight_A(5)
+        val_B = hx.get_weight_B(5)
+        print "A: %s  B: %s" % (val_A, val_B)
+
+        pass
+        if val_A >= y:
+            timeSensor1 = time.time()
+            print timeSensor1
+        if val_B >= y:
+            timeSensor2 = time.time()
+            print timeSensor2
+        while val_A >= y and val_B >= y:
+            waktu = timeSensor2 - timeSensor1 #Dalam Detik
+            print "Waktu : %s" % float(round(waktu, 3))
+            kecepatan = int(jarak) / float(round(waktu, 3))
+            print "Sensor 1 = %s Sensor 2 = %s Kecepatan = %s" % (val_A, val_B, kecepatan)
+            sql = "INSERT INTO weight (Date,BeratWim1,BeratWim2,Kecepatan) VALUES (%s,%s,%s,%s)"
+            val = (x,val_A,val_B,kecepatan)
+            mycursor.execute(sql,val)
+            mydb.Commit()
+            print (mycursor.rowcount, "Data Send to database")
+            pass
+
+
+        # val_A = hx.get_weight_A(5)
+        # val_B = hx.get_weight_B(5)
         # print "A: %s  B: %s" % ( val_A, val_B )
         # if val_A and val_B >= y:
         #     sql = "INSERT INTO weight (Date,BeratWim1,BeratWim2) VALUES (%s,%s,%s)"
         #     val =(x,val_A,val_B)
         #     mycursor.execute(sql,val)
         #     mydb.commit()
-
-
-        val_A = hx.get_weight_A(5)
-        val_B = hx.get_weight_B(5)
-        print "A: %s  B: %s" % ( val_A, val_B )
-        if val_A and val_B >= y:
-            sql = "INSERT INTO weight (Date,BeratWim1,BeratWim2) VALUES (%s,%s,%s)"
-            val =(x,val_A,val_B)
-            mycursor.execute(sql,val)
-            mydb.commit()
         
        
         
