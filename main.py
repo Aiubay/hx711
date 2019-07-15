@@ -37,7 +37,7 @@ def cleanAndExit():
     sys.exit()
 
 hx = HX711(5, 6) #GPIONumbering
-# h2x = HX7112(20,21)
+hx2 = HX711(20,21)
 # I've found out that, for some reason, the order of the bytes is not always the same between versions of python, numpy and the hx711 itself.
 # Still need to figure out why does it change.
 # If you're experiencing super random values, change these values to MSB or LSB until to get more stable values.
@@ -45,25 +45,25 @@ hx = HX711(5, 6) #GPIONumbering
 # The first parameter is the order in which the bytes are used to build the "long" value.
 # The second paramter is the order of the bits inside each byte.
 # According to the HX711 Datasheet, the second parameter is MSB so you shouldn't need to modify it.
-hx.set_reading_format("MSB", "MSB")
-# h2x.set_reading_format("MSB", "MSB")
+hx.set_reading_format("LSB", "MSB")
+hx2.set_reading_format("MSB", "MSB")
 # HOW TO CALCULATE THE REFFERENCE UNIT
 # To set the reference unit to 1. Put 1kg on your sensor or anything you have and know exactly how much it weights.
 # In this case, 92 is 1 gram because, with 1 as a reference unit I got numbers near 0 without any weight
 # and I got numbers around 184000 when I added 2kg. So, according to the rule of thirds:
 # If 2000 grams is 184000 then 1000 grams is 184000 / 2000 = 92.
 #hx.set_reference_unit(113)
-hx.set_reference_unit(92) #calibration unit
-# h2x.set_reference_unit(92)
+hx.set_reference_unit(1) #calibration unit
+hx2.set_reference_unit(1)
 hx.reset()
-# h2x.reset()
-#hx.tare()
-# h2x.tare()
+hx2.reset()
+hx.tare()
+hx2.tare()
 print "Tare done! Add weight now..."
 
 # to use both channels, you'll need to tare them both
-hx.tare_A()
-hx.tare_B()
+#hx.tare_A()
+#hx.tare_B()
 
 while True:
     try:
@@ -85,25 +85,25 @@ while True:
         y = int(50000)  # Asumsi berat minimum truck
         jarak = int(20)  # Dalam Meter
 
-        val_A = hx.get_weight_A(5)
-        val_B = hx.get_weight_B(5)
-        print "A: %s  B: %s" % (val_A, val_B)
+        Sensor1 = hx.get_weight(5)
+        Sensor2 = hx2.get_weight(5)
+        print "A: %s  B: %s" % (Sensor1, Sensor2)
 
         pass
-        if val_A >= y:
+        if Sensor1 >= y:
             timeSensor1 = time.time()
             print timeSensor1
-        if val_B >= y:
+        if Sensor2 >= y:
             timeSensor2 = time.time()
             print timeSensor2
-        while val_A >= y and val_B >= y:
+        while Sensor1 >= y and Sensor2 >= y:
             waktu = timeSensor2 - timeSensor1 #Dalam Detik
-            print "Waktu : %s" % float(round(waktu, 3))
-            kecepatan = int(jarak) / float(round(waktu, 3))
+            print "Waktu : %s" % float(round(waktu, 2))
+            kecepatan = int(jarak) / float(round(waktu, 2))
             print "Kecepatan : %s" % (kecepatan)
-            print "Sensor 1 = %s Sensor 2 = %s Kecepatan = %s" % (val_A, val_B, kecepatan)
+            print "Sensor 1 = %s Sensor 2 = %s Kecepatan = %s" % (Sensor1, Sensor2, kecepatan)
             sql = "INSERT INTO weight (Date,BeratWim1,BeratWim2,Kecepatan) VALUES (%s,%s,%s,%s)"
-            val = (x,val_A,val_B,kecepatan)
+            val = (x,Sensor1,Sensor2,kecepatan)
             mycursor.execute(sql,val)
             mydb.Commit()
             #print (mycursor.rowcount, "Data Send to database")
