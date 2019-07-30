@@ -14,7 +14,7 @@ if not EMULATE_HX711:
     print "From HX711"
     import RPi.GPIO as GPIO
     from hx711 import HX711
-    # from hx711 import HX7112
+    
 else:
     from emulated_hx711 import HX711
 
@@ -24,7 +24,7 @@ mydb = mysql.connector.connect(
   passwd="testrun",
   database="wim2"
 )
-x = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") #print date without microsecond
+date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") #print date without microsecond
 mycursor = mydb.cursor()
 
 def cleanAndExit():
@@ -57,10 +57,34 @@ hx.tare()
 hx2.tare()
 print "Tare done! Add weight now..."
 
+# list_truk = []
+#
+# class Truk:
+#     def __init__(self, x, waktu1, sensor1, sensor2):
+#         self.waktu1 = waktu1
+#         # self.waktu2 = None
+#         self.x = x
+#         self.sensor1 = sensor1
+#         self.sensor2 = sensor2
+#
+#     def set_waktu2(self, waktu):
+#         self.waktu2 = waktu
+#
+#     def getTruk(self):
+#         waktu = self.waktu2 - self.waktu1  # Dalam Detik
+#         print "Waktu : %s" % float(round(waktu, 2))
+#         kecepatan = int(jarak) * float(round(waktu, 2))
+#         print "Kecepatan : %s" % (kecepatan)
+#         print "Sensor 1 = %s Sensor 2 = %s Kecepatan = %s" % (self.sensor1, self.sensor2, kecepatan)
+#         return (date, self.sensor1, self.sensor2, kecepatan)
+
 while True:
     try:
+
         y = int(1000)  # Asumsi berat minimum truck dalam KG
-        jarak = int(20)  # Dalam Meter
+        jarak = int(5)  # Dalam Meter
+        jenis1 = "Truck"
+        jenis2 = "Bukan Truck"
 
         Sensor1 = hx.get_weight(5)
         Sensor2 = hx2.get_weight(5)
@@ -68,20 +92,41 @@ while True:
 
 
         if Sensor1 >= y:
+            # time.sleep(1)
             timeSensor1 = time.time()
+            # list_truk.append(Truk(date,timeSensor1,Sensor1,Sensor2))
             print timeSensor1
         if Sensor2 >= y:
+            # time.sleep(1)
             timeSensor2 = time.time()
+            # list_truk[0].set_waktu2(timeSensor2)
             print timeSensor2
-        while Sensor1 >= y and Sensor2 >= y:
+        if Sensor1 >= y and Sensor2 >= y:
             waktu = timeSensor2 - timeSensor1 #Dalam Detik
             print "Waktu : %s" % float(round(waktu, 2))
             kecepatan = int(jarak) / float(round(waktu, 2))
             print "Kecepatan : %s" % (kecepatan)
-            print "Sensor 1 = %s Sensor 2 = %s Kecepatan = %s" % (Sensor1, Sensor2, kecepatan)
-            sql = "INSERT INTO weight (Date,BeratWim1,BeratWim2,Kecepatan) VALUES (%s,%s,%s,%s)"
-            val = (x,Sensor1,Sensor2,kecepatan)
+            print "Jenis : %s" % (jenis1)
+            print "Sensor 1 = %s Sensor 2 = %s Kecepatan = %s Jenis Kendaraan : %s" % (Sensor1, Sensor2, kecepatan, jenis1)
+            sql = "INSERT INTO weight (Date,BeratWim1,BeratWim2,Kecepatan,Keterangan) VALUES (%s,%s,%s,%s,%s)"
+            val = (date,Sensor1,Sensor2,kecepatan,jenis2)
+            # val = list_truk[0].getTruk()
+            # list_truk.pop(0)
             mycursor.execute(sql,val)
+            mydb.Commit()
+        elif Sensor1 < y and Sensor2 < y:
+            waktu = timeSensor2 - timeSensor1  # Dalam Detik
+            print "Waktu : %s" % float(round(waktu, 2))
+            kecepatan = int(jarak) / float(round(waktu, 2))
+            print "Kecepatan : %s" % (kecepatan)
+            print "Jenis : %s" % (jenis2)
+            print "Sensor 1 = %s Sensor 2 = %s Kecepatan = %s Jenis Kendaraan : %s" % (
+            Sensor1, Sensor2, kecepatan, jenis2)
+            sql = "INSERT INTO weight (Date,BeratWim1,BeratWim2,Kecepatan,Keterangan) VALUES (%s,%s,%s,%s,%s)"
+            val = (date, Sensor1, Sensor2, kecepatan, jenis2)
+            # val = list_truk[0].getTruk()
+            # list_truk.pop(0)
+            mycursor.execute(sql, val)
             mydb.Commit()
             #print (mycursor.rowcount, "Data Send to database")
 
